@@ -47,6 +47,8 @@ class Predictor(BasePredictor):
                     "outtmpl": f"{rand_id}.%(ext)s",
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    metadata = ydl.sanitize_info(info)
                     ydl.download(url)
 
                 result = self.model.transcribe(f"{rand_id}.mp3", batch_size=batch_size)
@@ -59,14 +61,9 @@ class Predictor(BasePredictor):
                     )
             return json.dumps(
                 {
-                    "ok": True,
                     "segments": result["segments"],
+                    "metadata": metadata,
                 }
             )
         except Exception as e:
-            return json.dumps(
-                {
-                    "ok": False,
-                    "error": e,
-                }
-            )
+            raise (e)
